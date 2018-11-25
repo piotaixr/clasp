@@ -11,7 +11,7 @@
     "lint": "tslint --project tslint.json && echo 'No lint errors. All good!'",
     "test": "nyc --cache false mocha --timeout 100000 -- tests/*.js",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
-    "prettier": "./node_modules/prettier/bin-prettier.js --parser typescript --single-quote --bracket-spacing --print-width 110 --trailing-comma all src/**/*.ts --write"
+    "prettier": "./node_modules/prettier/bin-prettier.js src/**/*.ts tests/**/*.ts --write"
   },
   "bin": {
     "clasp": "./src/index.js"
@@ -20,15 +20,14 @@
     "type": "git",
     "url": "https://github.com/google/clasp"
   },
-  "keywords": [
-    "Apps",
-    "Script",
-    "SDK",
-    "API",
-    "script.google.com",
-    "extension",
-    "add-on"
-  ],
+  "prettier": {
+    "parser": "typescript",
+    "singleQuote": true,
+    "bracketSpacing": true,
+    "printWidth": 110,
+    "trailingComma": "all"
+  },
+  "keywords": ["Apps", "Script", "SDK", "API", "script.google.com", "extension", "add-on"],
   "importSort": {
     ".ts": {
       "parser": "typescript",

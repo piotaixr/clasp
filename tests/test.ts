@@ -18,9 +18,9 @@ import {
 const copyFileSync = require('fs-copy-file-sync');
 const { spawnSync } = require('child_process');
 
-const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
+const TEST_CODE_JS = "function test() { Logger.log('test'); }";
 const TEST_JSON = '{"timeZone": "America/New_York"}';
-const CLASP = (os.type() === 'Windows_NT') ? 'clasp.cmd' : 'clasp';
+const CLASP = os.type() === 'Windows_NT' ? 'clasp.cmd' : 'clasp';
 const isPR = process.env.TRAVIS_PULL_REQUEST;
 const CLASP_SETTINGS: string = JSON.stringify({
   scriptId: process.env.SCRIPT_ID,
@@ -44,14 +44,17 @@ const setup = () => {
   fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
 };
 
-const rndStr = () => Math.random().toString(36).substr(2);
+const rndStr = () =>
+  Math.random()
+    .toString(36)
+    .substr(2);
 
 const FAKE_CLASPRC: string = JSON.stringify({
   access_token: rndStr(),
   refresh_token: rndStr(),
   scope: 'https://www.googleapis.com/auth/script.projects',
   token_type: 'Bearer',
-  expiry_date: (new Date()).getTime(),
+  expiry_date: new Date().getTime(),
 });
 const FAKE_CLASPRC_LOCAL: string = JSON.stringify({
   token: FAKE_CLASPRC,
@@ -103,9 +106,7 @@ const restoreSettings = () => {
 
 describe('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
-    const result = spawnSync(
-      CLASP, [command, '--help'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, [command, '--help'], { encoding: 'utf8' });
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(expected);
   };
@@ -129,15 +130,13 @@ describe('Test --help for each function', () => {
 });
 
 describe('Test clasp list function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
   });
   it('should list clasp projects correctly', () => {
-    const result = spawnSync(
-      CLASP, ['list'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['list'], { encoding: 'utf8' });
     // Every project starts with this base URL, thus
     // using clasp list should at least contain this
     // in its output.
@@ -147,46 +146,40 @@ describe('Test clasp list function', () => {
 });
 
 describe('Test clasp create function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
   });
   it('should prompt for a project name correctly', () => {
     spawnSync('rm', ['.clasp.json']);
-    const result = spawnSync(
-      CLASP, ['create'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['create'], { encoding: 'utf8' });
     expect(result.stdout).to.contain('Give a script title:');
   });
   it('should not prompt for project name', () => {
     fs.writeFileSync('.clasp.json', '');
-    const result = spawnSync(
-      CLASP, ['create'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['create'], { encoding: 'utf8' });
     expect(result.stderr).to.contain('Project file (.clasp.json) already exists.');
   });
   after(cleanup);
 });
 
 describe.skip('Test clasp create <title> function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
   });
   it('should create a new project named <title> correctly', () => {
     spawnSync('rm', ['.clasp.json']);
-    const result = spawnSync(
-      CLASP, ['create', 'myTitle'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['create', 'myTitle'], { encoding: 'utf8' });
     expect(result.stdout).to.contain('Created new script: https://script.google.com/d/');
     expect(result.status).to.equal(0);
   });
 });
 
 describe('Test clasp clone <scriptId> function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -195,18 +188,14 @@ describe('Test clasp clone <scriptId> function', () => {
   it('should clone an existing project correctly', () => {
     const settings = JSON.parse(fs.readFileSync('.clasp.json', 'utf8'));
     fs.removeSync('.clasp.json');
-    const result = spawnSync(
-      CLASP, ['clone', settings.scriptId], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['clone', settings.scriptId], { encoding: 'utf8' });
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
   });
   it('should give an error on a non-existing project', () => {
     fs.removeSync('./.clasp.json');
-    const result = spawnSync(
-      CLASP, ['clone', 'non-existing-project'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['clone', 'non-existing-project'], { encoding: 'utf8' });
     expect(result.stderr).to.contain('> Did you provide the correct scriptId?');
     expect(result.status).to.equal(1);
   });
@@ -214,16 +203,14 @@ describe('Test clasp clone <scriptId> function', () => {
 });
 
 describe('Test clasp pull function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
     setup();
   });
   it('should pull an existing project correctly', () => {
-    const result = spawnSync(
-      CLASP, ['pull'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['pull'], { encoding: 'utf8' });
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
@@ -232,7 +219,7 @@ describe('Test clasp pull function', () => {
 });
 
 describe('Test clasp push function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -243,9 +230,7 @@ describe('Test clasp push function', () => {
     fs.writeFileSync('Code.js', TEST_CODE_JS);
     fs.writeFileSync('appsscript.json', TEST_JSON);
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
-    const result = spawnSync(
-      CLASP, ['push'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['push'], { encoding: 'utf8' });
     expect(result.stdout).to.contain('Pushed');
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
@@ -253,9 +238,7 @@ describe('Test clasp push function', () => {
   it.skip('should return non-0 exit code when push failed', () => {
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json\n!unexpected_file');
     fs.writeFileSync('unexpected_file', TEST_CODE_JS);
-    const result = spawnSync(
-      CLASP, ['push'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['push'], { encoding: 'utf8' });
     expect(result.stderr).to.contain('Invalid value at');
     expect(result.stderr).to.contain('UNEXPECTED_FILE');
     expect(result.stderr).to.contain('Files to push were:');
@@ -265,13 +248,13 @@ describe('Test clasp push function', () => {
 });
 
 describe('Test clasp status function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
     setup();
   });
-  function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
+  function setupTmpDirectory(filepathsAndContents: Array<{ file: string; data: string }>) {
     fs.ensureDirSync('tmp');
     const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: false }).name;
     filepathsAndContents.forEach(({ file, data }) => {
@@ -337,32 +320,28 @@ describe('Test clasp status function', () => {
 });
 
 describe('Test clasp open function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
     setup();
   });
   it('should prompt for which deployment to open correctly', () => {
-    const result = spawnSync(
-      CLASP, ['open'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['open'], { encoding: 'utf8' });
     expect(result.stdout).to.contain('Clone which deployment?');
   });
   after(cleanup);
 });
 
 describe('Test clasp deployments function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
     setup();
   });
   it('should list deployments correctly', () => {
-    const result = spawnSync(
-      CLASP, ['deployments'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['deployments'], { encoding: 'utf8' });
     expect(result.stdout).to.contain('Deployment');
     expect(result.status).to.equal(0);
   });
@@ -370,7 +349,7 @@ describe('Test clasp deployments function', () => {
 });
 
 describe('Test clasp deploy function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -379,9 +358,7 @@ describe('Test clasp deploy function', () => {
   // Could fail to to maximum deployments (20)
   // TODO: skip test if at maximum
   it('should deploy correctly', () => {
-    const result = spawnSync(
-      CLASP, ['deploy'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['deploy'], { encoding: 'utf8' });
     if (result.stderr) {
       const err1 = 'Scripts may only have up to 20 versioned deployments at a time';
       const err2 = 'Currently just one deployment can be created at a time';
@@ -397,7 +374,7 @@ describe('Test clasp deploy function', () => {
 });
 
 describe('Test clasp version and versions function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -405,9 +382,7 @@ describe('Test clasp version and versions function', () => {
   });
   let versionNumber = '';
   it('should create new version correctly', () => {
-    const result = spawnSync(
-      CLASP, ['version'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['version'], { encoding: 'utf8' });
     if (result.stderr) {
       expect(result.status).to.equal(1);
     } else {
@@ -416,9 +391,7 @@ describe('Test clasp version and versions function', () => {
       versionNumber = result.stdout.substring(result.stdout.lastIndexOf(' '), result.stdout.length - 2);
     }
     it('should list versions correctly', () => {
-      const result = spawnSync(
-        CLASP, ['versions'], { encoding: 'utf8' },
-      );
+      const result = spawnSync(CLASP, ['versions'], { encoding: 'utf8' });
       expect(result.stdout).to.contain('Versions');
       if (versionNumber) expect(result.stdout).to.contain(versionNumber + ' - ');
       expect(result.status).to.equal(0);
@@ -428,7 +401,7 @@ describe('Test clasp version and versions function', () => {
 });
 
 describe('Test clasp clone function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -436,16 +409,12 @@ describe('Test clasp clone function', () => {
   });
   it('should prompt for which script to clone correctly', () => {
     spawnSync('rm', ['.clasp.json']);
-    const result = spawnSync(
-      CLASP, ['clone'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['clone'], { encoding: 'utf8' });
     expect(result.stdout).to.contain('Clone which script?');
   });
   it('should give an error if .clasp.json already exists', () => {
     fs.writeFileSync('.clasp.json', '');
-    const result = spawnSync(
-      CLASP, ['clone'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['clone'], { encoding: 'utf8' });
     expect(result.stderr).to.contain('Project file (.clasp.json) already exists.');
     expect(result.status).to.equal(1);
   });
@@ -453,23 +422,19 @@ describe('Test clasp clone function', () => {
 });
 
 describe('Test setting function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
     setup();
   });
   it('should return current setting value', () => {
-    const result = spawnSync(
-      CLASP, ['setting', 'scriptId'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['setting', 'scriptId'], { encoding: 'utf8' });
 
     expect(result.stdout).to.equal(process.env.SCRIPT_ID);
   });
   it('should update .clasp.json with provided value', () => {
-    const result = spawnSync(
-      CLASP, ['setting', 'scriptId', 'test'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['setting', 'scriptId', 'test'], { encoding: 'utf8' });
     const fileContents = fs.readFileSync('.clasp.json', 'utf8');
     expect(result.stdout).to.contain('Updated "scriptId":');
     expect(result.stdout).to.contain('-> "test"');
@@ -477,16 +442,12 @@ describe('Test setting function', () => {
   });
   it('should error on unknown keys', () => {
     // Test getting
-    let result = spawnSync(
-      CLASP, ['setting', 'foo'], { encoding: 'utf8' },
-    );
+    let result = spawnSync(CLASP, ['setting', 'foo'], { encoding: 'utf8' });
     expect(result.status).to.equal(1);
     expect(result.stderr).to.contain('Unknown key "foo"');
 
     // Test setting
-    result = spawnSync(
-      CLASP, ['setting', 'bar', 'foo'], { encoding: 'utf8' },
-    );
+    result = spawnSync(CLASP, ['setting', 'bar', 'foo'], { encoding: 'utf8' });
     expect(result.status).to.equal(1);
     expect(result.stderr).to.contain('Setting "bar" is unsupported');
   });
@@ -580,59 +541,45 @@ describe('Test saveProject function from utils', () => {
 });
 
 describe('Test clasp apis functions', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
     setup();
   });
   it('should list apis correctly', () => {
-    const result = spawnSync(
-      CLASP, ['apis', 'list'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['apis', 'list'], { encoding: 'utf8' });
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain('# Currently enabled APIs:');
     expect(result.stdout).to.contain('# List of available APIs:');
   });
   it('should ask for an API when trying to enable', () => {
-    const result = spawnSync(
-      CLASP, ['apis', 'enable'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['apis', 'enable'], { encoding: 'utf8' });
     expect(result.status).to.equal(1);
     expect(result.stderr).to.contain('An API name is required.');
   });
   it('should enable sheets', () => {
-    const result = spawnSync(
-      CLASP, ['apis', 'enable', 'sheets'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['apis', 'enable', 'sheets'], { encoding: 'utf8' });
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain('Enabled sheets.');
   });
   it('should give error message for non-existent API', () => {
-    const result = spawnSync(
-      CLASP, ['apis', 'enable', 'fakeApi'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['apis', 'enable', 'fakeApi'], { encoding: 'utf8' });
     expect(result.status).to.equal(1);
-    expect(result.stderr).to.contain('API fakeApi doesn\'t exist. Try \'clasp apis enable sheets\'.');
+    expect(result.stderr).to.contain("API fakeApi doesn't exist. Try 'clasp apis enable sheets'.");
   });
   it('should ask for an API when trying to disable', () => {
-    const result = spawnSync(
-      CLASP, ['apis', 'disable'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['apis', 'disable'], { encoding: 'utf8' });
     expect(result.status).to.equal(1);
     expect(result.stderr).to.contain('An API name is required.');
   });
   it('should disable apis correctly', () => {
-    const result = spawnSync(
-      CLASP, ['apis', 'disable', 'sheets'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['apis', 'disable', 'sheets'], { encoding: 'utf8' });
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain('Disabled sheets.');
   });
   it('should show suggestions for using clasp apis', () => {
-    const result = spawnSync(
-      CLASP, ['apis'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['apis'], { encoding: 'utf8' });
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain(`# Try these commands:
 - clasp apis list
@@ -640,9 +587,7 @@ describe('Test clasp apis functions', () => {
 - clasp apis disable slides`);
   });
   it('should error with unknown subcommand', () => {
-    const result = spawnSync(
-      CLASP, ['apis', 'unknown'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['apis', 'unknown'], { encoding: 'utf8' });
     expect(result.status).to.equal(1);
     expect(result.stderr).to.contain(`Unknown command`);
   });
@@ -650,7 +595,7 @@ describe('Test clasp apis functions', () => {
 });
 
 describe.skip('Test clasp logs function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -658,14 +603,14 @@ describe.skip('Test clasp logs function', () => {
   });
   it('should prompt for logs setup', () => {
     const result = spawnSync(
-      CLASP, ['logs'], { encoding: 'utf8' },  // --setup is default behaviour
+      CLASP,
+      ['logs'],
+      { encoding: 'utf8' }, // --setup is default behaviour
     );
     expect(result.stdout).to.contain('What is your GCP projectId?');
   });
   it('should prompt for logs setup', () => {
-    const result = spawnSync(
-      CLASP, ['logs', '--setup'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['logs', '--setup'], { encoding: 'utf8' });
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain('Open this link:');
     const scriptId = JSON.parse(CLASP_SETTINGS).scriptId;
@@ -678,7 +623,7 @@ describe.skip('Test clasp logs function', () => {
 });
 
 describe('Test clasp login function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -689,52 +634,48 @@ describe('Test clasp login function', () => {
   it('should exit(0) with LOG.DEFAULT_CREDENTIALS for default login (no global or local rc)', () => {
     if (fs.existsSync(claspRcGlobalPath)) fs.removeSync(claspRcGlobalPath);
     if (fs.existsSync(claspRcLocalPath)) fs.removeSync(claspRcLocalPath);
-    const result = spawnSync(
-      CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['login', '--no-localhost'], { encoding: 'utf8' });
     expect(result.stdout).to.contain(LOG.DEFAULT_CREDENTIALS);
     expect(result.status).to.equal(0);
   });
   it('should exit(1) with ERROR.LOGGED_IN if global rc and no --creds option', () => {
     fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
-    const result = spawnSync(
-      CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['login', '--no-localhost'], { encoding: 'utf8' });
     fs.removeSync(claspRcGlobalPath);
     expect(result.stderr).to.contain(ERROR.LOGGED_IN_GLOBAL);
     expect(result.status).to.equal(1);
   });
   it('should exit(0) with ERROR.LOGGED_IN if local rc and --creds option', () => {
     fs.writeFileSync(claspRcLocalPath, FAKE_CLASPRC_LOCAL);
-    const result = spawnSync(
-      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], {
+      encoding: 'utf8',
+    });
     fs.removeSync(claspRcLocalPath);
     expect(result.stderr).to.contain(ERROR.LOGGED_IN_LOCAL);
     expect(result.status).to.equal(1);
   });
   it.skip('should exit(1) with ERROR.CREDENTIALS_DNE if --creds file does not exist', () => {
     if (fs.existsSync(clientCredsLocalPath)) fs.removeSync(clientCredsLocalPath);
-    const result = spawnSync(
-      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], {
+      encoding: 'utf8',
+    });
     expect(result.stderr).to.contain(ERROR.CREDENTIALS_DNE(clientCredsLocalPath));
     expect(result.status).to.equal(1);
   });
   it.skip('should exit(1) with ERROR.BAD_CREDENTIALS_FILE if --creds file invalid', () => {
     fs.writeFileSync(clientCredsLocalPath, INVALID_CLIENT_CREDS);
-    const result = spawnSync(
-      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], {
+      encoding: 'utf8',
+    });
     fs.removeSync(clientCredsLocalPath);
     expect(result.stderr).to.contain(ERROR.BAD_CREDENTIALS_FILE);
     expect(result.status).to.equal(1);
   });
   it.skip('should exit(0) with ERROR.BAD_CREDENTIALS_FILE if --creds file corrupt json', () => {
     fs.writeFileSync(clientCredsLocalPath, rndStr());
-    const result = spawnSync(
-      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], {
+      encoding: 'utf8',
+    });
     fs.removeSync(clientCredsLocalPath);
     expect(result.stderr).to.contain(ERROR.BAD_CREDENTIALS_FILE);
     expect(result.status).to.equal(1);
@@ -743,9 +684,9 @@ describe('Test clasp login function', () => {
     if (fs.existsSync(claspRcLocalPath)) fs.removeSync(claspRcLocalPath);
     fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
     fs.writeFileSync(clientCredsLocalPath, FAKE_CLIENT_CREDS);
-    const result = spawnSync(
-      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], {
+      encoding: 'utf8',
+    });
     fs.removeSync(claspRcGlobalPath);
     fs.removeSync(clientCredsLocalPath);
     expect(result.stdout).to.contain(LOG.CREDENTIALS_FOUND);
@@ -755,7 +696,7 @@ describe('Test clasp login function', () => {
 });
 
 describe('Test clasp logout function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -766,9 +707,7 @@ describe('Test clasp logout function', () => {
   it('should remove global AND local credentails', () => {
     fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
     fs.writeFileSync(claspRcLocalPath, FAKE_CLASPRC_LOCAL);
-    const result = spawnSync(
-      CLASP, ['logout'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['logout'], { encoding: 'utf8' });
     expect(fs.existsSync(claspRcGlobalPath)).to.equal(false);
     expect(hasOauthClientSettings()).to.equal(false);
     expect(fs.existsSync(claspRcLocalPath)).to.equal(false);
@@ -779,26 +718,21 @@ describe('Test clasp logout function', () => {
 });
 
 describe('Test clasp run function', () => {
-  before(function () {
+  before(function() {
     if (isPR !== 'false') {
       this.skip();
     }
     setup();
   });
   it('should prompt for project ID', () => {
-    const result = spawnSync(
-      CLASP, ['run', 'myFunction'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['run', 'myFunction'], { encoding: 'utf8' });
     expect(result.stdout).to.contain('What is your GCP projectId?');
   });
   it('should prompt to set up new OAuth client', () => {
     fs.writeFileSync(claspSettingsLocalPath, CLASP_SETTINGS_FAKE_PROJECTID);
-    const result = spawnSync(
-      CLASP, ['run', 'myFunction'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['run', 'myFunction'], { encoding: 'utf8' });
     fs.removeSync(claspSettingsLocalPath);
-    expect(result.stdout)
-      .to.contain('https://console.developers.google.com/apis/credentials?project=');
+    expect(result.stdout).to.contain('https://console.developers.google.com/apis/credentials?project=');
     expect(result.status).to.equal(0);
   });
   after(cleanup);
@@ -806,9 +740,7 @@ describe('Test clasp run function', () => {
 
 describe('Test variations of clasp help', () => {
   const expectHelp = (variation: string) => {
-    const result = spawnSync(
-      CLASP, [variation], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, [variation], { encoding: 'utf8' });
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(CLASP_USAGE);
   };
@@ -819,9 +751,7 @@ describe('Test variations of clasp help', () => {
 
 describe('Test variations of clasp --version', () => {
   const expectVersion = (variation: string) => {
-    const result = spawnSync(
-      CLASP, [variation], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, [variation], { encoding: 'utf8' });
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(require('./../package.json').version);
   };
@@ -831,9 +761,7 @@ describe('Test variations of clasp --version', () => {
 
 describe('Test unknown functions', () => {
   it('should show version correctly', () => {
-    const result = spawnSync(
-      CLASP, ['unknown'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['unknown'], { encoding: 'utf8' });
     expect(result.stderr).to.contain(`Unknown command`);
     expect(result.status).to.equal(1);
   });
@@ -845,9 +773,7 @@ describe('Test all functions while logged out', () => {
     if (fs.existsSync(claspRcLocalPath)) fs.removeSync(claspRcLocalPath);
   });
   const expectNoCredentials = (command: string) => {
-    const result = spawnSync(
-      CLASP, [command], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, [command], { encoding: 'utf8' });
     expect(result.status).to.equal(1);
     expect(result.stderr).to.include(ERROR.NO_CREDENTIALS);
   };
@@ -862,27 +788,21 @@ describe('Test all functions while logged out', () => {
   // TODO: all test should have same order of checks
   // and should all return ERROR.NO_CREDENTIALS
   it('should fail to pull (no .clasp.json file)', () => {
-    const result = spawnSync(
-      CLASP, ['pull'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['pull'], { encoding: 'utf8' });
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
     expect(result.stderr).to.contain(ERROR.SETTINGS_DNE);
   });
   it('should fail to open (no .clasp.json file)', () => {
-    const result = spawnSync(
-      CLASP, ['open'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['open'], { encoding: 'utf8' });
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
     expect(result.stderr).to.contain(ERROR.SETTINGS_DNE);
   });
   it('should fail to show logs (no .clasp.json file)', () => {
-    const result = spawnSync(
-      CLASP, ['logs'], { encoding: 'utf8' },
-    );
+    const result = spawnSync(CLASP, ['logs'], { encoding: 'utf8' });
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
